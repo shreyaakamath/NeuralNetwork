@@ -213,6 +213,9 @@ public class NeuralNetwork {
 		List<DataInstance> train= new ArrayList<DataInstance>();
 		List<DataInstance> test= new ArrayList<DataInstance>();
 		for(int i=0;i<folds;i++){
+			NnWeight.clear();
+			//populate the initial weight in the NN
+			for(int k=0;k<noAttr;k++) NnWeight.add(initialWeight);
 			test.clear();
 			train.clear();
 			for(int j=0;j<folds;j++){
@@ -267,12 +270,12 @@ public class NeuralNetwork {
 		correct=0;total=0;
 		for(int i=0;i<folds.length;i++){
 			correct=0; total=0;
-			for(int j=0;j<10;j++){
+//			for(int j=0;j<10;j++){
 				NeuralNetwork nn=new NeuralNetwork(file, 0.1, folds[i], 50);
 				nn.stratifiedCrossValidation(false);
 				correct+=nn.correctClass;
 				total+=nn.totalTested;
-			}
+//			}
 			double accuracy = correct*1.0/total*1.0;
 			System.out.println(folds[i]+","+accuracy);
 		}
@@ -316,10 +319,11 @@ public class NeuralNetwork {
 		double learningRate=Double.parseDouble(args[2]);
 		int epochs=Integer.parseInt(args[3]);
 				
-		NeuralNetwork nn=new NeuralNetwork(file, learningRate, folds, epochs);
+//		NeuralNetwork nn=new NeuralNetwork(file, learningRate, folds, epochs);
 //		NeuralNetwork nn=new NeuralNetwork("sonar.arff", 0.1, 10, 50);
-		nn.stratifiedCrossValidation(true);
-//		getGraphs12(file);
+//		nn.stratifiedCrossValidation(true);
+		getGraphs12(file);
+//		plotRoc(file);
 	}
 
 }
