@@ -1,0 +1,3 @@
+javac NeuralNetwork.java -cp weka.jar
+jar cfe neural.jar NeuralNetwork NeuralNetwork.class DataInstance.class SortedDi.class SortedDiSigmoidComp.class
+java -jar neural.jar sonar.arff 10 0.1 50
