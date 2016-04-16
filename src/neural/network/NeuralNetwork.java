@@ -100,7 +100,7 @@ public class NeuralNetwork {
 		} 
 		//get the number of attributes and the class attribute values
 		noAttr=data.numAttributes();
-		Attribute attr=data.attribute(noAttr-1);
+		Attribute attr=data.attribute(data.numAttributes()-1);
 		if(attr.name().equalsIgnoreCase("class")){
 			String attrRegex="\\{(.*?)\\}";
 			Pattern p2 = Pattern.compile(attrRegex);
@@ -122,6 +122,8 @@ public class NeuralNetwork {
 			for(int j=0;j<noAttr-1;j++){
 				di.attValues.add(new Double(items[j]));
 			}
+			//bias attribute
+			di.attValues.add(new Double(0.1));
 			di.givenClass=items[noAttr-1];
 			di.id=i;
 			allData.add(di);
@@ -151,7 +153,7 @@ public class NeuralNetwork {
 	 * For one DataInstance , train the NN epoch number of times
 	 */
 	void NNTrain(DataInstance di){
-		for(int j=0;j<epoch;j++){
+//		for(int j=0;j<epoch;j++){
 			//calculate wi*xi for all attributes
 			double sum=0;
 			for(int i=0;i<noAttr-1;i++){
@@ -172,7 +174,7 @@ public class NeuralNetwork {
 				double deltaWeight=delta*learningRate*di.attValues.get(i);
 				NnWeight.set(i,deltaWeight+NnWeight.get(i));
 			}
-		}
+//		}
 	}
 	
 	/**
@@ -193,7 +195,7 @@ public class NeuralNetwork {
 		String actualClass=di.givenClass;
 		
 		
-		if(sigmoid>0.5) predictedClass=classValues[0];
+		if(sigmoid<0.5) predictedClass=classValues[0];
 		else predictedClass=classValues[1];
 		
 		int index=di.id;
@@ -210,7 +212,6 @@ public class NeuralNetwork {
 	void stratifiedCrossValidation(boolean print){
 		List<DataInstance> train= new ArrayList<DataInstance>();
 		List<DataInstance> test= new ArrayList<DataInstance>();
-		List<SortedDi> output= new ArrayList<SortedDi>();
 		for(int i=0;i<folds;i++){
 			test.clear();
 			train.clear();
@@ -225,8 +226,14 @@ public class NeuralNetwork {
 			long seed=System.nanoTime();
 			Collections.shuffle(train,new Random(seed));
 			Collections.shuffle(test,new Random(seed));
-			for(DataInstance di:train) NNTrain(di);
-			for(DataInstance di:test) NNTest(i+1, di);
+			for(int j=0;j<epoch;j++){
+				for(DataInstance di:train) {
+					NNTrain(di);
+				}
+			}
+			for(DataInstance di:test){ 
+				NNTest(i+1, di);
+			}
 			totalTested+=test.size();
 		}
 		Collections.sort(output,new SortedDiComparator());
@@ -238,17 +245,7 @@ public class NeuralNetwork {
 			}
 		}
 	}
-	void validate(){
-		System.out.println("====pos=====");	
-		for(DataInstance i:posData) System.out.println(i.givenClass);
-		System.out.println("====neg=====");
-		for(DataInstance i:negData) System.out.println(i.givenClass);
-	}
-	
-	double getAccuracy(){
-		return correctClass*1.0/allData.size()*1.0;
-	}
-	
+
 	static void getGraphs12(String file){
 		int[] epochs = { 25,50,75,100};
 		System.out.println("Graph1:");
@@ -268,7 +265,7 @@ public class NeuralNetwork {
 		int[] folds={5,10,15,20,25};
 		System.out.println("Graph2:");
 		correct=0;total=0;
-		for(int i=0;i<epochs.length;i++){
+		for(int i=0;i<folds.length;i++){
 			correct=0; total=0;
 			for(int j=0;j<10;j++){
 				NeuralNetwork nn=new NeuralNetwork(file, 0.1, folds[i], 50);
@@ -277,7 +274,7 @@ public class NeuralNetwork {
 				total+=nn.totalTested;
 			}
 			double accuracy = correct*1.0/total*1.0;
-			System.out.println(epochs[i]+","+accuracy);
+			System.out.println(folds[i]+","+accuracy);
 		}
 		
 	}
@@ -294,7 +291,7 @@ public class NeuralNetwork {
 		String prevClass=nn.classValues[0];
 		Collections.sort(nn.output,new SortedDiSigmoidComp());
 		for(SortedDi instance : nn.output){
-			if(instance.actualClass == prevClass){
+			if(instance.actualClass.equalsIgnoreCase(prevClass)){
 				if(instance.actualClass.equalsIgnoreCase(nn.classValues[0])) tp++;
 				else fp++;
 			}else{
@@ -314,8 +311,15 @@ public class NeuralNetwork {
 		plotRoc(file);
 	}
 	public static void main(String[] args) {
-//		NeuralNetwork nn=new NeuralNetwork("sonar.arff", 10, 10, 50);
-//		nn.stratifiedCrossValidation(false);
+		String file = args[0];
+		int folds=Integer.parseInt(args[1]);
+		double learningRate=Double.parseDouble(args[2]);
+		int epochs=Integer.parseInt(args[3]);
+				
+		NeuralNetwork nn=new NeuralNetwork(file, learningRate, folds, epochs);
+//		NeuralNetwork nn=new NeuralNetwork("sonar.arff", 0.1, 10, 50);
+		nn.stratifiedCrossValidation(true);
+//		getGraphs12(file);
 	}
 
 }
