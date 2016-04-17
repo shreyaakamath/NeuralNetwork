@@ -1,3 +1,8 @@
 javac NeuralNetwork.java -cp weka.jar
-jar cfe neural.jar NeuralNetwork NeuralNetwork.class DataInstance.class SortedDi.class SortedDiSigmoidComp.class
+jar cfm neural.jar Manifest.txt NeuralNetwork.class DataInstance.class SortedDi.class SortedDiComparator.class SortedDiSigmoidComp.class
 java -jar neural.jar sonar.arff 10 0.1 50
+
+Manifest.txt:
+Class-Path: weka.jar
+Main-class: NeuralNetwork
+
